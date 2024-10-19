@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI - Teacher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        #chat {
+            width: 400px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        #messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #000000; 
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #000000; 
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .user {
+            font-weight: bold;
+            color: #007bff; /* Синий для пользователя */
+        }
+        .bot {
+            font-weight: bold;
+            color: #dc3545; /* Красный для бота */
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+<div id="chat">
+    <h2>AI - Teacher</h2>
+    <div id="messages"></div>
+    <input type="text" id="userInput" placeholder="Введите задачу...">
+    <button id="sendButton">Отправить</button>
+    <br>
+    <input type="text" id="imagePrompt" placeholder="Введите описание для изображения...">
+    <button id="generateImageButton">Сгенерировать изображение</button>
+</div>
+
+<script>
+    document.getElementById('sendButton').addEventListener('click', async () => {
+        const userInput = document.getElementById('userInput').value;
+        const response = await fetch('http://127.0.0.1:8000/solve', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: userInput }),
+        });
+
+        const data = await response.json();
+        document.getElementById('messages').innerHTML += `<div class="message"><span class="user">Вы:</span> ${userInput}</div>`;
+        document.getElementById('messages').innerHTML += `<div class="message"><span class="bot">Бот:</span> ${data.answer}</div>`;
+        document.getElementById('userInput').value = ''; // Очистка поля ввода
+    });
+
+    document.getElementById('generateImageButton').addEventListener('click', async () => {
+        const imagePrompt = document.getElementById('imagePrompt').value;
+        const response = await fetch('http://127.0.0.1:8000/generate-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ prompt: imagePrompt }),
+        });
+
+        const data = await response.json();
+        document.getElementById('messages').innerHTML += `<div class="message"><span class="user">Вы:</span> ${imagePrompt}</div>`;
+        if (data.image_url) {
+            document.getElementById('messages').innerHTML += `<div class="message"><span class="bot">Изображение:</span> <img src="${data.image_url}" alt="Сгенерированное изображение"></div>`;
+        } else {
+            document.getElementById('messages').innerHTML += `<div class="message"><span class="bot">Ошибка:</span> Не удалось сгенерировать изображение.</div>`;
+        }
+        document.getElementById('imagePrompt').value = ''; // Очистка поля ввода
+    });
+</script>
+
+</body>
+</html>
